@@ -1,0 +1,43 @@
+@inherits AfterRenderComponentBase
+@inject IJSRuntime JSRuntime
+
+<div class="grid">
+    @foreach ((int width, int height, string imageUrl) in kittenImages)
+    {
+        <div class="grid-item" style="width: @(width)px; height: @(height)px">
+            <img src="@imageUrl" width="@width" height="@height" />
+        </div>
+    }
+</div>
+
+@code{
+    // (width, height, url)
+    private List<(int, int, string)> kittenImages = new List<(int, int, string)>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        for (int i = 0; i < 50; i++)
+        {
+            kittenImages.Add(GenerateKittenImage());
+        }
+
+        RunAfterRender(async () => await JSRuntime.InvokeVoidAsync("initMasonry"));
+    }
+
+    private Random random = new Random();
+
+    // (width, height)
+    private static (int, int)[] dimensions = new (int, int)[]
+    {
+        (200, 200),
+        (200, 400),
+        (400, 200),
+        (400, 400),
+    };
+
+    private (int, int, string) GenerateKittenImage()
+    {
+        var (width, height) = dimensions[random.Next(0, dimensions.Length)];
+        return (width, height, $"https://placekitten.com/{width}/{height}?random={Guid.NewGuid()}");
+    }
+}
